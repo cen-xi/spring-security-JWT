@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>[JWT] 测试</title>
+</head>
+<body>
+jave web token [JWT] 测试
+<hr>
+<div>
+    <label>
+        账户：
+        <input id="name" type="text">
+    </label>
+    <label>
+        密码：
+        <input id="psw" type="text">
+    </label>
+</div>
+<button onclick="dosome(1)">登录</button>
+<hr>
+<hr>
+<button onclick="dosome(3)">登出</button>
+<hr>
+<label>
+    token：
+    <input id="url" type="text" value="http://localhost:5605/hello">
+    <span id="token"></span>
+</label>
+<button onclick="dotoken()">点我token访问</button>
+<hr>
+返回的结果：<span id="res"></span>
+
+<!--当前路径是/html/**  ,因此需要返回一级 ，所以用  ../js/  -->
+<script src="../js/jquery-1.11.1.min.js"></script>
+<script src="../js/base64.js"></script>
+
+<script>
+    //当前最新的token
+    let token = "";
+
+
+    function dotoken() {
+        let url = ""+($("#url").val()).trim();
+        if (url == ""){
+            console.log("url不可空")
+            return;
+        }
+        $.ajax({
+            //请求头添加token
+            //方法一：
+            // beforeSend: function (request) {
+            //     request.setRequestHeader("Authorization", token);
+            // },
+            //方法二：
+            headers: {
+                //认证信息
+                Authorization: token
+            },
+            async: true,
+            type: 'post',
+            dataType: "json",
+            url: url,
+            xhrFields: {withCredentials: true},    //前端适配：允许session跨域
+            crossDomain: true,
+
+            success: function (data) {
+                console.log(data);
+                //请求成功回调函数
+                if (data != null) {
+                    // alert("有数据返回")
+                    $("#res").html(JSON.stringify(data))
+                } else {
+                    alert("系统异常")
+                }
+            },
+            error: function (xhr, type, errorThrown) {
+                //异常处理；
+                console.log("异常处理")
+                console.log(JSON.stringify(xhr));
+                if (xhr.readyState == 4 && xhr.status == 403){
+                    $("#res").html("403无权访问")
+                }
+                /*
+                {"readyState":4,"responseText":"{\"timestamp\":\"2020-06-08T16:51:15.016+00:00\",
+                \"status\":403,\"error\":\"Forbidden\",\"message\":\"\",\"path\":\"/admin\"}",
+                "responseJSON":{"timestamp":"2020-06-08T16:51:15.016+00:00","status":403,"error":"Forbidden",
+                "message":"","path":"/admin"},"status":403,"statusText":"error"}
+                 */
+                console.log(type);
+                console.log(errorThrown);
+            }
+        });
+    }
+
+    function dosome(type) {
+        let name = "";
+        let psw = "";
+        let url = "";
+        if (type == 1) {
+            name = ($("#name").val()).trim();
+            psw = ($("#psw").val()).trim();
+            //登录
+            url = "http://localhost:5605/login";
+        } else if (type == 3) {
+            //登出
+            url = "http://localhost:5605/logout";
+        }
+        //URL是URI的子集，所有的URL都是URI，但不是每个URI都是URL，还有可能是URN。
+        $.ajax({
+            async: true,
+            type: 'post',
+            //对应于后端 parama 方式获取数据 ,使用req.getParameter获取
+            // data: {"username": name, "password": psw},
+            //对应于后端raw方式获取数据，需要json解析，使用req.getInputStream()获取
+            data: JSON.stringify({"username": name, "password": psw}),
+            //这里类型是json，那么跨域的后端需要是map类型、po实体类等 json类型 才能接收数据
+            dataType: "json",
+            url: url,
+            xhrFields: {withCredentials: true},    //前端适配：允许session跨域
+            crossDomain: true,
+            // //请求头设置
+            // headers: {
+            //     //认证信息
+            //     Authorization: authorization
+            // },
+            success: function (data) {
+                console.log(data);
+                //请求成功回调函数
+                if (data != null) {
+                    // alert("有数据返回")
+                    $("#res").html(JSON.stringify(data))
+                    token = data.token;
+                    $("#token").html(token);
+                } else {
+                    alert("系统异常")
+                }
+            },
+            error: function (xhr, type, errorThrown) {
+                //异常处理；
+                console.log("异常处理")
+                console.log(JSON.stringify(xhr));
+                console.log(type);
+                console.log(errorThrown);
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

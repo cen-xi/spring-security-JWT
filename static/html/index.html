@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+</head>
+<body>
+你好 ，世界 ，2333
+<!--<p>点击 去home.html页面</p>-->
+<hr>
+<div>
+    <label>
+        账户：
+        <input id="name" type="text">
+    </label>
+    <label>
+        密码：
+        <input id="psw" type="text">
+    </label>
+</div>
+<button onclick="dosome(1)">登录</button>
+<hr>
+<hr>
+<button onclick="dosome(3)">登出</button>
+<hr>
+<hr>
+<button onclick="dosome(4)">获取认证信息</button>
+<hr>
+<label>
+    发送的内容：
+    <input id="text" type="text">
+</label>
+<button onclick="dosome(2)">点我，发送信息</button>
+<hr>
+返回的结果：<span id="res"></span>
+<!--<link href="/js/jquery-1.11.1.min.js" rel="stylesheet"/>-->
+
+<!--当前路径是/html/**  ,因此需要返回一级 ，所以用  ../js/  -->
+<script src="../js/jquery-1.11.1.min.js"></script>
+<script src="../js/base64.js"></script>
+<script>
+    function dosome(type) {
+        // let authUser = "cen" //后台服务认证user
+        // let authPassword = "11"; //后台服务认证密码
+        // let result = new Base64().encode(authUser + ":" + authPassword);
+        // console.log("base64===="+result);
+        // let authorization = "Basic " + result;
+        // console.log(authorization);
+        let name = "";
+        let psw = "";
+
+        let url = "";
+
+        if (type == 1) {
+            name =  ($("#name").val()).trim();
+            psw =  ($("#psw").val()).trim();
+            //登录
+            url = "http://localhost:5601/login";
+        } else if (type == 2) {
+            let text = $("#text").val();
+            if (text.trim() == "") {
+                alert("不能为空");
+                return;
+            }
+            name =  ($("#name").val()).trim();
+            psw =  ($("#psw").val()).trim();
+            url = "http://localhost:5601/getid/" + text;
+        } else if (type == 3) {
+            //登出
+            url = "http://localhost:5601/logout";
+        }else {
+            url = "http://localhost:5601/info"
+        }
+
+
+        //URL是URI的子集，所有的URL都是URI，但不是每个URI都是URL，还有可能是URN。
+
+        $.ajax({
+            async: true,
+            type: 'post',
+            data: {"username": name, "password": psw},
+            //这里类型是json，那么跨域的后端需要是map类型、po实体类等 json类型 才能接收数据
+            dataType: "json",
+            url: url,
+            //跨域设置
+            // xhrFields: {
+            //     ////跨域请求 ，是否允许携带cookie
+            //     withCredentials: true
+            // },
+            // //请求头设置
+            // headers: {
+            //     //认证信息
+            //     Authorization: authorization
+            // },
+            success: function (data) {
+                console.log(data);
+                //请求成功回调函数
+                if (data != null) {
+                    // alert("有数据返回")
+                    $("#res").html(JSON.stringify(data))
+                } else {
+                    alert("系统异常")
+                }
+            },
+            error: function (xhr, type, errorThrown) {
+                //异常处理；
+                console.log("异常处理")
+                console.log(JSON.stringify(xhr));
+                console.log(type);
+                console.log(errorThrown);
+            }
+        });
+    }
+
+</script>
+</body>
+</html>
